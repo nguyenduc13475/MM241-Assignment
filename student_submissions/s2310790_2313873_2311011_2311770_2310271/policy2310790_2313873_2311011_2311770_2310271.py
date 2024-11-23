@@ -121,3 +121,30 @@ def Policy2310790_2313873_2311011_2311770_2310271(Policy):
                                 return True
         
         return False
+    
+    def tightening(self):
+        # Sort the stocks array in descending order of wasted areas.
+        wasted_indices = np.arange(self.num_stocks)
+        wasted_indices, _ = zip(
+            *sorted(
+                zip(wasted_indices, self.stocks), 
+                key = lambda x: float("inf") if x[1]["right_bound"] * x[1]["top_bound"] == 0 
+                else x[1]["right_bound"] * x[1]["top_bound"] - x[1]["width"] * x[1]["height"]
+            )
+        )
+
+        for stock_index in wasted_indices:
+            stock = self.stocks[stock_index]
+            for i in self.stock_indices[::-1]:
+                replace_stock = self.stocks[i]
+                if replace_stock["top_bound"] * replace_stock["right_bound"] == 0 and \
+                   replace_stock["width"] >= stock["right_bound"] and replace_stock["height"] >= stock["top_bound"] and \
+                   replace_stock["width"] * replace_stock["height"] < stock["width"] * stock["height"]:
+                    replace_stock["products"] = stock["products"]
+                    replace_stock["right_bound"] = stock["right_bound"]
+                    replace_stock["top_bound"] = stock["top_bound"]
+
+                    stock["products"] = []
+                    stock["right_bound"] = 0
+                    stock["top_bound"] = 0
+                    break
